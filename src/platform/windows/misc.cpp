@@ -50,6 +50,7 @@
 
 // local includes
 #include "misc.h"
+#include "privacy_screen.h"
 #include "nvprefs/nvprefs_interface.h"
 #include "src/entry_handler.h"
 #include "src/globals.h"
@@ -1252,6 +1253,30 @@ namespace platf {
       }
     }
     enable_mouse_keys();
+
+    // Privacy screen (UU Remote 隐私屏 equivalent): show a capture-excluded
+    // overlay for the whole streaming session, and flush any latched lock request.
+    // streaming_will_start() runs once, when the first client connects.
+    using platf::privacy::privacy_config_t;
+    using platf::privacy::privacy_screen_manager_t;
+    using platf::privacy::remote_lock_manager_t;
+    privacy_config_t pcfg;
+    pcfg.enabled = config::privacy.enabled;
+    pcfg.image_path = config::privacy.image_path;
+    pcfg.fallback_rgb = config::privacy.fallback_rgb;
+    pcfg.lock_on_disable = config::privacy.lock_on_disable;
+    pcfg.lock_on_disconnect = config::privacy.lock_on_disconnect;
+    pcfg.hide_cursor = config::privacy.hide_cursor;
+    pcfg.settle_delay = std::chrono::milliseconds {config::privacy.settle_delay_ms};
+
+    privacy_screen_manager_t::instance().configure(pcfg);
+    remote_lock_manager_t::instance().on_session_start();
+    if (pcfg.enabled) {
+      const auto r = privacy_screen_manager_t::instance().enable();
+      if (r != platf::privacy::result_e::ok && r != platf::privacy::result_e::image_failed) {
+        BOOST_LOG(error) << "PrivacyScreen: enable failed ["sv << platf::privacy::result_name(r) << ']';
+      }
+    }
   }
 
   void enable_mouse_keys() {
@@ -1314,6 +1339,24 @@ namespace platf {
         BOOST_LOG(warning) << "Unable to restore original state of Mouse Keys: "sv << winerr;
       }
     }
+
+    // Privacy screen: remove the overlay and restore the physical monitor.
+    // streaming_will_stop() runs once, when the last client disconnects.
+    // lock_on_disable mirrors UU's handleDisablePrivacyModeAndLock.
+    using platf::privacy::privacy_config_t;
+    using platf::privacy::privacy_screen_manager_t;
+    using platf::privacy::remote_lock_manager_t;
+    privacy_config_t pcfg;
+    pcfg.lock_on_disconnect = config::privacy.lock_on_disconnect;
+
+    if (privacy_screen_manager_t::instance().active()) {
+      const bool lock_now = config::privacy.lock_on_disable;
+      const auto r = privacy_screen_manager_t::instance().disable(lock_now);
+      if (r != platf::privacy::result_e::ok) {
+        BOOST_LOG(warning) << "PrivacyScreen: disable ["sv << platf::privacy::result_name(r) << ']';
+      }
+    }
+    remote_lock_manager_t::instance().on_session_stop(pcfg);
   }
 
   void restart_on_exit() {

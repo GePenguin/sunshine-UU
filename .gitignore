@@ -43,6 +43,21 @@ cmake-*/
 /.dockle/
 /_site/
 
+# Local runtime state and credentials must never be committed.
+# These normally live under build/config/, but the patterns are repeated without
+# the build/ prefix so a relocated or out-of-tree config directory stays safe.
+config/sunshine.conf
+config/sunshine_state.json
+config/sunshine.log*
+config/credentials/
+sunshine.conf
+sunshine_state.json
+sunshine.log*
+*.pem
+!.github/**/*.pem
+!src_assets/**/*.pem
+!tests/**/*.pem
+
 # npm
 node_modules/
 coverage/

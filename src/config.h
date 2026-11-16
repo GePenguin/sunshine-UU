@@ -407,12 +407,30 @@ namespace config {
     std::vector<std::string> csrf_allowed_origins;  ///< Additional origins allowed by CSRF validation.
   };
 
+  /**
+   * @brief Privacy-screen / remote-lock settings (UU Remote 隐私屏 equivalent).
+   *
+   * Kept as a standalone struct (not embedded in video_t) because video_t is
+   * aggregate-initialized in config.cpp; adding a member there would shift the
+   * positional initializer list.
+   */
+  struct privacy_t {
+    bool enabled = false;  ///< Show a capture-excluded overlay during each streaming session.
+    std::string image_path;  ///< UTF-8 path to the privacy wallpaper (PNG/JPG/BMP/GIF). Empty = solid colour.
+    std::uint32_t fallback_rgb = 0x00000000;  ///< 0x00RRGGBB solid colour when the image cannot be decoded.
+    bool lock_on_disable = true;  ///< Lock the workstation when privacy is disabled (UU handleDisablePrivacyModeAndLock).
+    bool lock_on_disconnect = false;  ///< Lock the workstation when the last client disconnects.
+    bool hide_cursor = true;  ///< Hide the physical cursor while the overlay is up.
+    int settle_delay_ms = 250;  ///< Milliseconds to wait for display topology to settle before painting.
+  };
+
   extern video_t video;
   extern audio_t audio;
   extern stream_t stream;
   extern nvhttp_t nvhttp;
   extern input_t input;
   extern sunshine_t sunshine;
+  extern privacy_t privacy;  ///< Privacy-screen / remote-lock settings.
 
 #ifdef SUNSHINE_TESTS
   /**

@@ -803,6 +803,19 @@ namespace config {
   };
 
   /**
+   * @brief Default privacy-screen / remote-lock values (disabled unless configured).
+   */
+  privacy_t privacy {
+    false,  // enabled
+    {},  // image_path
+    0x00000000,  // fallback_rgb (black, matching UU's degraded fallback)
+    true,  // lock_on_disable
+    false,  // lock_on_disconnect
+    true,  // hide_cursor
+    250  // settle_delay_ms
+  };
+
+  /**
    * @brief Default audio configuration values used before file and CLI overrides.
    */
   audio_t audio {
@@ -1738,6 +1751,23 @@ namespace config {
 
     int_f(vars, "max_bitrate", video.max_bitrate);
     double_between_f(vars, "minimum_fps_target", video.minimum_fps_target, {0.0, 1000.0});
+
+    // Privacy screen / remote lock (UU Remote 隐私屏 equivalent).
+    bool_f(vars, "privacy_screen_enabled", privacy.enabled);
+    string_f(vars, "privacy_screen_image", privacy.image_path);
+    {
+      int value = 0;
+      int_f(vars, "privacy_screen_fallback_rgb", value);
+      privacy.fallback_rgb = (std::uint32_t) value;
+    }
+    bool_f(vars, "privacy_lock_on_disable", privacy.lock_on_disable);
+    bool_f(vars, "privacy_lock_on_disconnect", privacy.lock_on_disconnect);
+    bool_f(vars, "privacy_hide_cursor", privacy.hide_cursor);
+    {
+      int value = 250;
+      int_between_f(vars, "privacy_settle_delay_ms", value, {0, 10000});
+      privacy.settle_delay_ms = value;
+    }
 
     path_f(vars, "pkey", nvhttp.pkey);
     path_f(vars, "cert", nvhttp.cert);

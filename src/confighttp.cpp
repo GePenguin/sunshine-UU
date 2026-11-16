@@ -34,6 +34,7 @@
 
 #ifdef _WIN32
   #include "platform/windows/misc.h"
+  #include "platform/windows/privacy_screen.h"
   #include "platform/windows/utf_utils.h"
 
   #include <Windows.h>
@@ -1951,6 +1952,40 @@ namespace confighttp {
     send_response(response, output_tree);
   }
 
+#ifdef _WIN32
+  /**
+   * @brief Authenticated remote action: lock the Windows workstation.
+   * @details Reproduces UU Remote's "privacy-off + lock" behaviour.  The action
+   * is CSRF-protected and requires Web UI authentication; when no streaming
+   * session is active the request is latched and executed on the next session
+   * start, so a disconnect/reconnect cycle cannot silently drop it.
+   *
+   * @param response The HTTP response object.
+   * @param request The HTTP request object.
+   *
+   * @api_examples{/api/lock|:| POST|:| null}
+   */
+  void lockWorkstation(const resp_https_t &response, const req_https_t &request) {
+    if (!authenticate(response, request)) {
+      return;
+    }
+
+    std::string client_id = get_client_id(request);
+    if (!validate_csrf_token(response, request, client_id)) {
+      return;
+    }
+
+    print_req(request);
+
+    const auto r = platf::privacy::remote_lock_manager_t::instance().request_lock(false);
+    nlohmann::json output_tree;
+    output_tree["status"] = (r == platf::privacy::result_e::ok);
+    output_tree["result"] = platf::privacy::result_name(r);
+    output_tree["pending"] = platf::privacy::remote_lock_manager_t::instance().pending();
+    send_response(response, output_tree);
+  }
+#endif
+
   /**
    * @brief Authenticate a Web UI request and delete the saved XDG Portal restore token.
    * @details On platforms without XDG Portal capture, this operation succeeds without changing the filesystem.
@@ -2504,6 +2539,9 @@ namespace confighttp {
     server.resource["^/api/pin$"]["POST"] = savePin;
     server.resource["^/api/logs$"]["GET"] = getLogs;
     server.resource["^/api/reset-display-device-persistence$"]["POST"] = resetDisplayDevicePersistence;
+#ifdef _WIN32
+    server.resource["^/api/lock$"]["POST"] = lockWorkstation;
+#endif
     server.resource["^/api/reset-portal-token$"]["POST"] = resetPortalToken;
     server.resource["^/api/restart$"]["POST"] = restart;
     server.resource["^/api/permissions$"]["GET"] = getPermissions;
