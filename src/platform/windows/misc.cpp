@@ -1267,6 +1267,7 @@ namespace platf {
     pcfg.lock_on_disable = config::privacy.lock_on_disable;
     pcfg.lock_on_disconnect = config::privacy.lock_on_disconnect;
     pcfg.hide_cursor = config::privacy.hide_cursor;
+    pcfg.block_input = config::privacy.block_input;
     pcfg.settle_delay = std::chrono::milliseconds {config::privacy.settle_delay_ms};
 
     privacy_screen_manager_t::instance().configure(pcfg);

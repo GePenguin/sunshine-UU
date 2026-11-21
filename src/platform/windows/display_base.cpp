@@ -431,37 +431,13 @@ namespace platf::dxgi {
       // If we're not resyncing the thread desktop and we don't have permission to
       // capture the current desktop, just bail immediately. Retrying won't help.
       if (enumeration_only && status == E_ACCESSDENIED) {
-        // EXCEPTION: when WGC is the selected capture backend, a locked
-        // workstation makes DuplicateOutput() fail with E_ACCESSDENIED on
-        // every output (the secure desktop cannot be duplicated by DXGI).
-        // WGC *can* capture the secure desktop - measured on Win11 26200:
-        //   after LockWorkStation  DXGI nonblack=0%  WGC nonblack=99.7%
-        // Rejecting the display here would make Sunshine believe no monitor
-        // exists while locked, so the session can never show the login UI.
-        // Treat the output as usable and let the WGC backend do the work.
-        if (config::video.capture == "wgc") {
-          BOOST_LOG(info) << "DuplicateOutput() denied (locked secure desktop); "
-                             "accepting output because capture backend is WGC"sv;
-          return true;
-        }
         break;
       } else {
         std::this_thread::sleep_for(200ms);
       }
     }
 
-    BOOST_LOG(error) << "DuplicateOutput() test failed [0x"sv << util::hex(status).to_string_view()
-                     << ']';
-    // When WGC is the configured backend, a locked secure desktop makes this
-    // test fail with E_ACCESSDENIED even though WGC can still capture it.
-    // Report success so display selection proceeds; the WGC backend performs
-    // the real capture. Without this the client loses the display entirely and
-    // can never show the login screen after an auto-lock.
-    if (config::video.capture == "wgc" && status == E_ACCESSDENIED) {
-      BOOST_LOG(info) << "DuplicateOutput() denied by the locked secure desktop; "
-                         "proceeding because capture backend is WGC"sv;
-      return true;
-    }
+    BOOST_LOG(error) << "DuplicateOutput() test failed [0x"sv << util::hex(status).to_string_view() << ']';
     return false;
   }
 

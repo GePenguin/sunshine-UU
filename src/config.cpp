@@ -812,6 +812,7 @@ namespace config {
     true,  // lock_on_disable
     false,  // lock_on_disconnect
     true,  // hide_cursor
+    true,  // block_input
     250  // settle_delay_ms
   };
 
@@ -1763,6 +1764,7 @@ namespace config {
     bool_f(vars, "privacy_lock_on_disable", privacy.lock_on_disable);
     bool_f(vars, "privacy_lock_on_disconnect", privacy.lock_on_disconnect);
     bool_f(vars, "privacy_hide_cursor", privacy.hide_cursor);
+    bool_f(vars, "privacy_block_input", privacy.block_input);
     {
       int value = 250;
       int_between_f(vars, "privacy_settle_delay_ms", value, {0, 10000});

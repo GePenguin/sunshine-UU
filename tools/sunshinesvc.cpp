@@ -6,6 +6,7 @@
 #include <array>
 #include <format>
 #include <string>
+#include <vector>
 #include <Windows.h>
 #include <WtsApi32.h>
 

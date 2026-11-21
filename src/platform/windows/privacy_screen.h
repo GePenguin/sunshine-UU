@@ -46,6 +46,7 @@ namespace platf::privacy {
     bool lock_on_disable = true;  ///< Reproduce handleDisablePrivacyModeAndLock: lock when privacy turns off.
     bool lock_on_disconnect = false;  ///< Lock the workstation when the last client disconnects.
     bool hide_cursor = true;  ///< Hide the system cursor while the overlay is up (UU system_cursor_guard).
+    bool block_input = true;  ///< Block local physical keyboard and mouse input (SendInput preserved).
     std::chrono::milliseconds settle_delay {250};  ///< Delay between topology settle and overlay creation.
   };
 

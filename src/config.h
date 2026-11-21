@@ -421,6 +421,7 @@ namespace config {
     bool lock_on_disable = true;  ///< Lock the workstation when privacy is disabled (UU handleDisablePrivacyModeAndLock).
     bool lock_on_disconnect = false;  ///< Lock the workstation when the last client disconnects.
     bool hide_cursor = true;  ///< Hide the physical cursor while the overlay is up.
+    bool block_input = true;  ///< Block local physical keyboard and mouse input while privacy screen is active.
     int settle_delay_ms = 250;  ///< Milliseconds to wait for display topology to settle before painting.
   };
 
